@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title><%= Rails.application.class.parent_name %> | <%= @title %></title>
+  <%= stylesheet_link_tag    "application" %>
+  <%= javascript_include_tag "application" %>
+  <%= csrf_meta_tags %>
+</head>
+<body>
+
+  <div id="topbar" class="shadow">
+    <ul class="left">
+      <li class="first"><a href="#"><b><%= Rails.application.class.parent_name %></b></a></li>
+      <li><a href="#">Role [to-do]</li></li>
+      <li><a href="#"><%= @title %></a></li>
+    </ul>
+    <ul class="right">
+      <li class="last"><a href="#">Logout</a></li>
+    </ul>
+  </div>
+
+  <div id="wrapper">
+    
+    <div id="content" class="round">
+      <%= yield %>
+    </div>
+    
+  </div>
+</body>
+</html>
