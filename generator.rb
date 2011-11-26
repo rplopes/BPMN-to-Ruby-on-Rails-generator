@@ -55,41 +55,39 @@ Dir.chdir "#{title}" do
   doc.css("definitions process").each do |process|
     pool = {}
     pool["title"] = process["name"]
+    pool["title"] = process["id"] if pool["title"] == nil or pool["title"].size < 1
     pool["code"] = pool["title"].gsub(/[^A-z0-9]/,'').downcase
     pool["tasks"] = []
+    tasks = []
     process.css("laneSet lane").each do |role|
       lane = {}
       lane["title"] = role["name"]
-      lane["title"] = pool["title"] if lane["title"] == nil
+      lane["title"] = pool["title"] if lane["title"] == nil or lane["title"].size < 1
       lane["code"] = lane["title"].gsub(/[^A-z0-9]/,'').downcase
       role.css("flowNodeRef").each do |node|
-        pool["tasks"] << {"id" => node.text, "lane" => lane}
+        tasks << {"id" => node.text, "lane" => lane}
       end
     end
     process.css("task, exclusiveGateway, startEvent, endEvent").each do |node|
-      pool["tasks"].each do |task|
+      tasks.each do |task|
         if task["id"] == node["id"]
-          if node["name"] == nil or node["name"].size == 0
-            task["title"] = "Page"
-            task["code"] = task["id"].gsub(/[^A-z0-9]/,'').downcase
-          else
+          if node["name"] != nil and node["name"].size > 0
             task["title"] = node["name"]
             task["code"] = task["title"].gsub(/[^A-z0-9]/,'').downcase
+            pool["tasks"] << task
           end
           break
         end
       end
     end
-    pools << pool
+    pools << pool if pool["tasks"].size > 0
   end
   
   # Creating controllers
   puts "Creating controllers"
-  temp = []
   pools.each do |pool|
     if pool["tasks"].size > 0
-      temp << pool
-      command = "rails generate controller #{pool["code"]}"
+      command = "rails g controller #{pool["code"]}"
       pool["tasks"].each do |task|
         command += " #{task["lane"]["code"]}_#{task["code"]}"
       end
@@ -97,7 +95,6 @@ Dir.chdir "#{title}" do
       system command
     end
   end
-  pools = temp
   
   # Assigning titles
   puts "Assigning titles"
