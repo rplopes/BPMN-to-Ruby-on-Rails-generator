@@ -9,11 +9,20 @@ group :production do
 end
 group :development, :test do
   gem 'sqlite3'
+  gem 'capybara'
+  gem 'haml-rails'
+  gem 'hpricot'
+  gem 'ruby_parser'
+  gem 'web-app-theme', '~>0.8.0'
 end
 
 gem 'json'
 gem 'nifty-generators'
 gem 'nokogiri'
+gem 'haml'
+gem 'devise'
+gem 'kaminari'
+gem 'authlogic'
 
 group :assets do
   gem 'sass-rails',   '~> 3.1.4'
