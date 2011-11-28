@@ -85,7 +85,7 @@ Dir.chdir "#{title}" do
   end
   f.close
   
-  # Creating users and roles
+  # Creating users
   system "rails g devise:install"
   system "rails g devise user"
   lines = []
@@ -176,6 +176,14 @@ Dir.chdir "#{title}" do
     f.puts "        %h1 #{title}" if line =~ /#box/
   end
   f.close
+  f1 = File.open("../generator_files/seeds.rb", 'r')
+  f2 = File.open("db/seeds.rb", 'w')
+  while line = f1.gets
+    f2.puts line
+  end
+  f1.close
+  f2.close
+  system "rake db:seed"
 
   # Parsing the BPMN file
   puts "Parsing the BPMN file"
@@ -186,6 +194,7 @@ Dir.chdir "#{title}" do
     pool["title"] = process["id"] if pool["title"] == nil or pool["title"].size < 1
     pool["code"] = pool["title"].gsub(/[^A-z0-9]/,'').downcase
     pool["tasks"] = []
+    pool["lanes"] = []
     tasks = []
     process.css("laneSet lane").each do |role|
       lane = {}
@@ -203,6 +212,7 @@ Dir.chdir "#{title}" do
             task["title"] = node["name"]
             task["code"] = task["title"].gsub(/[^A-z0-9]/,'').downcase
             pool["tasks"] << task
+            pool["lanes"] << task["lane"] unless pool["lanes"].index(task["lane"])
           end
           break
         end
@@ -210,6 +220,32 @@ Dir.chdir "#{title}" do
     end
     pools << pool if pool["tasks"].size > 0
   end
+  
+  # Creating roles
+  system "rails g cancan:ability"
+  system "rails generate migration add_roles_mask_to_users roles_mask:integer"
+  system "rake db:migrate"
+  f1 = File.open("../generator_files/user.rb", 'r')
+  f2 = File.open("app/models/user.rb", 'w')
+  while line = f1.gets
+    f2.puts line
+    if line =~ /class User < ActiveRecord::Base/
+      roles = "  ROLES = %w["
+      roles_titles = "  ROLES_TITLES = {"
+      pools.each do |pool|
+        pool["lanes"].each do |lane|
+          roles += "#{lane["code"]} "
+          roles_titles += "\"#{lane["code"]}\" => \"#{lane["title"]}\", "
+        end
+      end
+      roles = roles[0..-2] + "]"
+      roles_titles = roles_titles[0..-3] + "}"
+      f2.puts roles
+      f2.puts roles_titles
+    end
+  end
+  f1.close
+  f2.close
   
   # Creating controllers
   puts "Creating controllers"
@@ -225,47 +261,6 @@ Dir.chdir "#{title}" do
       #system "rails g web_app_theme:themed #{pool["code"]}s --will-paginate --engine=haml"
     end
   end
-  
-  # Assigning titles
-#  puts "Assigning titles"
-#  pools.each do |pool|
-#    lines = []
-#    f = File.open("app/controllers/#{pool["code"]}_controller.rb", 'r')
-#    while line = f.gets
-#      lines << line
-#    end
-#    f.close
-#    f = File.open("app/controllers/#{pool["code"]}_controller.rb", 'w')
-#    lines.each do |line|
-#      f.puts line
-#      if line =~ /  def /
-#        pool["tasks"].each do |task|
-#          if line["  def ".size..-2] == "#{task["lane"]["code"]}_#{task["code"]}"
-#            f.puts "    @title = '#{task["title"]}'"
-#            break
-#          end
-#        end
-#      end
-#    end
-#    f.close
-#  end
-  
-  # Editing layout
-#  puts "Editing layout"
-#  f1 = File.open("../generator_files/application.html.erb", 'r')
-#  f2 = File.open("app/views/layouts/application.html.erb", 'w')
-#  while line = f1.gets
-#    f2.puts line
-#  end
-#  f1.close
-#  f2.close
-#  f1 = File.open("../generator_files/application.css", 'r')
-#  f2 = File.open("app/assets/stylesheets/application.css", 'w')
-#  while line = f1.gets
-#    f2.puts line
-#  end
-#  f1.close
-#  f2.close
   
   puts "Finished"
 

@@ -17,6 +17,14 @@
       .group
         = f.label :password_confirmation, "Re-enter Password", :class => "label"
         = f.password_field :password_confirmation, :class => "text_field"
+      .group
+        = f.label :roles
+        %br
+        - for role in User::ROLES
+          = check_box_tag "user[roles][]", role, @user.roles.include?(role)
+          =h User::ROLES_TITLES[role]
+          %br
+        = hidden_field_tag "user[roles][]", ""
       .group.navform.wat-cf
         %button.button{ :type => "submit" }
           = image_tag "web-app-theme/icons/tick.png"
