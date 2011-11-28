@@ -103,6 +103,7 @@ Dir.chdir "#{title}" do
     end
   end
   f.close
+  system "rake db:migrate"
   system "rails g web_app_theme:theme sign --layout-type=sign --engine=haml --app-name=\"#{title}\""
   lines = []
   f = File.open("config/application.rb", 'r')
@@ -136,7 +137,6 @@ Dir.chdir "#{title}" do
   end
   f1.close
   f2.close
-  system "rake db:migrate"
   lines = []
   f = File.open("app/views/layouts/application.html.haml", 'r')
   while line = f.gets
@@ -148,10 +148,11 @@ Dir.chdir "#{title}" do
     if line =~ /javascript_include_tag :defaults, :cache => true/
       f.puts "    = javascript_include_tag 'application'"
     else
-      if line =~ /t("web-app-theme.logout", :default => "Logout")/
+      if line =~ /web-app-theme\.logout/
         f.puts "              = link_to t(\"web-app-theme.logout\", :default => \"Logout\"), destroy_user_session_path, :method => :delete"
       else
         f.puts line
+        f.puts "    = javascript_include_tag :defaults" if line =~ /csrf_meta_tag/
       end
     end
   end
@@ -163,6 +164,18 @@ Dir.chdir "#{title}" do
   end
   f1.close
   f2.close
+  lines = []
+  f = File.open("app/views/layouts/sign.html.haml", 'r')
+  while line = f.gets
+    lines << line
+  end
+  f.close
+  f = File.open("app/views/layouts/sign.html.haml", 'w')
+  lines.each do |line|
+    f.puts line
+    f.puts "        %h1 #{title}" if line =~ /#box/
+  end
+  f.close
 
   # Parsing the BPMN file
   puts "Parsing the BPMN file"

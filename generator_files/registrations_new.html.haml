@@ -1,6 +1,5 @@
-%h1 My Latest Web App
 .block#block-signup
-  %h2 Sign up
+  %h2 Register
   .content
     .flash
       - flash.each do |type, message|
@@ -21,5 +20,4 @@
       .group.navform.wat-cf
         %button.button{ :type => "submit" }
           = image_tag "web-app-theme/icons/tick.png"
-          Sign up 
-    = render :partial => "devise/shared/links"
+          Register
