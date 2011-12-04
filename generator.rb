@@ -257,6 +257,30 @@ Dir.chdir "#{title}" do
       end
       puts command
       system command
+      f = File.open("app/views/#{pool["code"]}/_sidebar.html.haml", 'w')
+      f.puts ".block"
+        pool["lanes"].each do |lane|
+          f.puts "  %h3 #{lane["title"]}"
+          f.puts "  %ul.navigation"
+          pool["tasks"].each do |task|
+            if task["lane"]["code"] == lane["code"]
+              f.puts "    %li"
+              f.puts "      %a{:href => \"#{task["lane"]["code"]}/#{task["code"]}\"} #{task["title"]}"
+            end
+          end
+        end
+      f.close
+      pool["tasks"].each do |task|
+        f = File.open("app/views/#{pool["code"]}/#{task["lane"]["code"]}_#{task["code"]}.html.haml", 'w')
+        f.puts ".block"
+        f.puts "  .content"
+        f.puts "    %h2.title"
+        f.puts "      #{task["title"]}"
+        f.puts "    .inner"
+        f.puts "      Page for #{task["title"]}, accessible by #{task["lane"]["title"]}."
+        f.puts "- content_for :sidebar, render(:partial => 'sidebar')"
+        f.close
+      end
       #puts "Web-app-theme for pool"
       #system "rails g web_app_theme:themed #{pool["code"]}s --will-paginate --engine=haml"
     end
