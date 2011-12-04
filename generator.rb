@@ -52,18 +52,6 @@ Dir.chdir "#{title}" do
   # Home page
   system "rails g controller home index"
   system "rm public/index.html"
-  lines = []
-  f = File.open("config/routes.rb", 'r')
-  while line = f.gets
-    lines << line
-  end
-  f.close
-  f = File.open("config/routes.rb", 'w')
-  lines.each do |line|
-    f.puts line
-    f.puts "  root :to => \"home#index\"" if line =~ /::Application.routes.draw do/
-  end
-  f.close
   system "rake db:create"
   system "rails g web_app_theme:theme --engine=haml --app-name=\"#{title}\""
   system "rails g web_app_theme:assets"
@@ -144,17 +132,23 @@ Dir.chdir "#{title}" do
   end
   f.close
   f = File.open("app/views/layouts/application.html.haml", 'w')
+  dontput = -1
   lines.each do |line|
-    if line =~ /javascript_include_tag :defaults, :cache => true/
-      f.puts "    = javascript_include_tag 'application'"
+    if dontput > 0
+      dontput -= 1
     else
-      if line =~ /web-app-theme\.logout/
-        f.puts "              = link_to t(\"web-app-theme.logout\", :default => \"Logout\"), destroy_user_session_path, :method => :delete"
+      if line =~ /javascript_include_tag :defaults, :cache => true/
+        f.puts "    = javascript_include_tag 'application'"
       else
-        f.puts line
-        f.puts "    = javascript_include_tag :defaults" if line =~ /csrf_meta_tag/
+        if line =~ /web-app-theme\.logout/
+          f.puts "              = link_to t(\"web-app-theme.logout\", :default => \"Logout\"), destroy_user_session_path, :method => :delete"
+        else
+          f.puts line
+          f.puts "    = javascript_include_tag :defaults" if line =~ /csrf_meta_tag/
+        end
       end
     end
+    dontput = 4 if line =~ /ul.wat-cf/ and dontput == -1
   end
   f.close
   f1 = File.open("../generator_files/application_controller.rb", 'r')
@@ -234,8 +228,8 @@ Dir.chdir "#{title}" do
       roles_titles = "  ROLES_TITLES = {"
       pools.each do |pool|
         pool["lanes"].each do |lane|
-          roles += "#{lane["code"]} "
-          roles_titles += "\"#{lane["code"]}\" => \"#{lane["title"]}\", "
+          roles += "#{pool["code"]}_#{lane["code"]} "
+          roles_titles += "\"#{pool["code"]}_#{lane["code"]}\" => \"#{lane["title"]}\", "
         end
       end
       roles = roles[0..-2] + "]"
@@ -246,12 +240,46 @@ Dir.chdir "#{title}" do
   end
   f1.close
   f2.close
+  f = File.open("app/models/ability.rb", 'w')
+  f.puts "class Ability"
+  f.puts "  include CanCan::Ability\n"
+  f.puts "  def initialize(user)"
+  f.puts "    user ||= User.new"
+  pools.each do |pool|
+    pool["lanes"].each do |lane|
+      f.puts "    if user.#{pool["code"]}_#{lane["code"]}?"
+      f.puts "      can :#{pool["code"]}_#{lane["code"]}, :all"
+    end
+  end
+  f.puts "    end"
+  f.puts "  end"
+  f.puts "end"
+  f.close
+  
+  # Home page layout
+  f = File.open("app/views/home/_sidebar.html.haml", 'w')
+  f.puts ".block"
+  f.puts "  %h3 Pages"
+  f.puts "  %ul.navigation"
+  pools.each do |pool|
+    f.puts "    %li"
+    f.puts "      %a{:href => \"#{pool["code"]}\/\"} #{pool["title"]}"
+  end
+  f = File.open("app/views/home/index.html.haml", 'w')
+      f.puts ".block"
+      f.puts "  .content"
+      f.puts "    %h2.title"
+      f.puts "      #{title}"
+      f.puts "    .inner"
+      f.puts "      Start page for #{title}."
+      f.puts "- content_for :sidebar, render(:partial => 'sidebar')"
+      f.close
   
   # Creating controllers
   puts "Creating controllers"
   pools.each do |pool|
     if pool["tasks"].size > 0
-      command = "rails g controller #{pool["code"]}"
+      command = "rails g controller #{pool["code"]} home"
       pool["tasks"].each do |task|
         command += " #{task["lane"]["code"]}_#{task["code"]}"
       end
@@ -260,12 +288,13 @@ Dir.chdir "#{title}" do
       f = File.open("app/views/#{pool["code"]}/_sidebar.html.haml", 'w')
       f.puts ".block"
         pool["lanes"].each do |lane|
-          f.puts "  %h3 #{lane["title"]}"
-          f.puts "  %ul.navigation"
+          f.puts "  - if current_user.roles.index(\"#{pool["code"]}_#{lane["code"]}\")"
+          f.puts "    %h3 #{lane["title"]}"
+          f.puts "    %ul.navigation"
           pool["tasks"].each do |task|
             if task["lane"]["code"] == lane["code"]
-              f.puts "    %li"
-              f.puts "      %a{:href => \"#{task["lane"]["code"]}/#{task["code"]}\"} #{task["title"]}"
+              f.puts "      %li"
+              f.puts "        %a{:href => \"#{task["lane"]["code"]}_#{task["code"]}\"} #{task["title"]}"
             end
           end
         end
@@ -281,10 +310,35 @@ Dir.chdir "#{title}" do
         f.puts "- content_for :sidebar, render(:partial => 'sidebar')"
         f.close
       end
-      #puts "Web-app-theme for pool"
-      #system "rails g web_app_theme:themed #{pool["code"]}s --will-paginate --engine=haml"
+      f = File.open("app/views/#{pool["code"]}/home.html.haml", 'w')
+      f.puts ".block"
+      f.puts "  .content"
+      f.puts "    %h2.title"
+      f.puts "      #{pool["title"]}"
+      f.puts "    .inner"
+      f.puts "      Start page for #{pool["title"]}."
+      f.puts "- content_for :sidebar, render(:partial => 'sidebar')"
+      f.close
     end
   end
+  
+  # Configuring routes
+  lines = []
+  f = File.open("config/routes.rb", 'r')
+  while line = f.gets
+    lines << line
+  end
+  f.close
+  f = File.open("config/routes.rb", 'w')
+  lines.each do |line|
+    if line =~ /#{pools.last["code"]}\/home/ # Nao esta correcto!!!!!!!!!
+      f.puts "  match \"#{pools.last["code"]}\/\" => \"#{pools.last["code"]}#home\"" # Nao esta correcto!!!!!!!!!
+    else
+      f.puts line
+      f.puts "  root :to => \"home#index\"" if line =~ /::Application.routes.draw do/
+    end
+  end
+  f.close
   
   puts "Finished"
 
