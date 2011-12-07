@@ -26,9 +26,6 @@ end
 # Reading BPMN file
 bpmn = File.open("#{title}.bpmn")
 doc = Nokogiri::XML(bpmn)
-#doc.css("definitions process").each do |process|
-#  puts process
-#end
 
 # Creating Rails project
 puts "Creating Rails project"
@@ -36,7 +33,6 @@ system "rails new #{title}"
 Dir.chdir "#{title}" do
 
   # Editing Gemfile
-  puts "Editing Gemfile"
   f1 = File.open("../generator_files/Gemfile", 'r')
   f2 = File.open("Gemfile", 'w')
   while line = f1.gets
@@ -46,7 +42,6 @@ Dir.chdir "#{title}" do
   f2.close
 
   # Bundle install
-  puts "Installing required gems"
   system "bundle install"
   
   # Home page
@@ -111,6 +106,7 @@ Dir.chdir "#{title}" do
   end
   f.close
   system "rails g devise:views"
+  system "rm app/views/devise/sessions/new.html.erb"
   f1 = File.open("../generator_files/sessions_new.html.haml", 'r')
   f2 = File.open("app/views/devise/sessions/new.html.haml", 'w')
   while line = f1.gets
@@ -118,6 +114,7 @@ Dir.chdir "#{title}" do
   end
   f1.close
   f2.close
+  system "rm app/views/devise/registrations/new.html.erb"
   f1 = File.open("../generator_files/registrations_new.html.haml", 'r')
   f2 = File.open("app/views/devise/registrations/new.html.haml", 'w')
   while line = f1.gets
@@ -177,10 +174,10 @@ Dir.chdir "#{title}" do
   end
   f1.close
   f2.close
-  system "rake db:seed"
+  #system "rails g devise_invitable:install"
+  #system "rails g devise_invitable user"
 
   # Parsing the BPMN file
-  puts "Parsing the BPMN file"
   pools = []
   doc.css("definitions process").each do |process|
     pool = {}
@@ -224,8 +221,8 @@ Dir.chdir "#{title}" do
   while line = f1.gets
     f2.puts line
     if line =~ /class User < ActiveRecord::Base/
-      roles = "  ROLES = %w["
-      roles_titles = "  ROLES_TITLES = {"
+      roles = "  ROLES = %w[website_administrator "
+      roles_titles = "  ROLES_TITLES = {\"website_administrator\" => \"Website Administrator\", "
       pools.each do |pool|
         pool["lanes"].each do |lane|
           roles += "#{pool["code"]}_#{lane["code"]} "
@@ -255,6 +252,7 @@ Dir.chdir "#{title}" do
   f.puts "  end"
   f.puts "end"
   f.close
+  system "rake db:seed"
   
   # Home page layout
   f = File.open("app/views/home/_sidebar.html.haml", 'w')
@@ -276,7 +274,6 @@ Dir.chdir "#{title}" do
       f.close
   
   # Creating controllers
-  puts "Creating controllers"
   pools.each do |pool|
     if pool["tasks"].size > 0
       command = "rails g controller #{pool["code"]} home"
@@ -340,7 +337,10 @@ Dir.chdir "#{title}" do
   end
   f.close
   
-  puts "Finished"
+  puts "\nRuby on Rails project #{title} created."
+  puts "Administration account:"
+  puts "Email: admin@example.com"
+  puts "Password: password\n"
 
 end
 bpmn.close

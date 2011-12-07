@@ -21,8 +21,8 @@ gem 'nifty-generators'
 gem 'nokogiri'
 gem 'haml'
 gem 'devise'
+#gem 'devise_invitable'
 gem 'kaminari'
-gem 'authlogic'
 gem 'cancan'
 
 group :assets do
