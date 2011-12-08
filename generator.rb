@@ -100,7 +100,7 @@ Dir.chdir "#{title}" do
     if line =~ /config.assets.version = '1.0'/
       f.puts "    config.to_prepare do"
       f.puts "      Devise::SessionsController.layout \"sign\""
-      f.puts "      Devise::RegistrationsController.layout \"sign\""
+      f.puts "      #Devise::RegistrationsController.layout \"sign\""
       f.puts "    end"
     end
   end
@@ -109,6 +109,14 @@ Dir.chdir "#{title}" do
   system "rm app/views/devise/sessions/new.html.erb"
   f1 = File.open("../generator_files/sessions_new.html.haml", 'r')
   f2 = File.open("app/views/devise/sessions/new.html.haml", 'w')
+  while line = f1.gets
+    f2.puts line
+  end
+  f1.close
+  f2.close
+  #system "rm app/views/devise/registrations/edit.html.erb"
+  f1 = File.open("../generator_files/registrations_edit.html.haml", 'r')
+  f2 = File.open("app/views/devise/registrations/edit.html.haml", 'w')
   while line = f1.gets
     f2.puts line
   end
@@ -138,6 +146,8 @@ Dir.chdir "#{title}" do
         f.puts "    = javascript_include_tag 'application'"
       else
         if line =~ /web-app-theme\.logout/
+          f.puts "              = link_to 'Edit account', '/users/edit'"
+          f.puts "            %li"
           f.puts "              = link_to t(\"web-app-theme.logout\", :default => \"Logout\"), destroy_user_session_path, :method => :delete"
         else
           f.puts line
@@ -282,6 +292,20 @@ Dir.chdir "#{title}" do
       end
       puts command
       system command
+      # Controller
+      lines = []
+      f = File.open("app/controllers/#{pool["code"]}_controller.rb", 'r')
+      while line = f.gets
+        lines << line
+      end
+      f.close
+      f = File.open("app/controllers/#{pool["code"]}_controller.rb", 'w')
+      lines.each do |line|
+        f.puts line
+        f.puts "    auth(\"#{pool["code"]}_#{line["  def ".size..line.index("_")-1]}\")" if line =~ /def .*_.*/
+      end
+      f.close
+      # Sidebar
       f = File.open("app/views/#{pool["code"]}/_sidebar.html.haml", 'w')
       f.puts ".block"
         pool["lanes"].each do |lane|
@@ -296,6 +320,7 @@ Dir.chdir "#{title}" do
           end
         end
       f.close
+      # Views
       pool["tasks"].each do |task|
         f = File.open("app/views/#{pool["code"]}/#{task["lane"]["code"]}_#{task["code"]}.html.haml", 'w')
         f.puts ".block"

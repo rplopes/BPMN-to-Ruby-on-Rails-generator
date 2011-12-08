@@ -6,6 +6,10 @@ class ApplicationController < ActionController::Base
     flash[:error] = "Access denied."
     redirect_to root_url
   end
+  
+  def auth(role)
+    redirect_to root_path, :flash => {:error => "You don't have access to that page."} and return unless current_user.roles.index(role)
+  end
 
   private
   def after_sign_out_path_for(resource_or_scope)
