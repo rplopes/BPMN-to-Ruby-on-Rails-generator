@@ -1,30 +1,39 @@
 require "rubygems"
 require "nokogiri"
+require 'active_support/inflector'
 
 count = 0
 title = ""
+types = ["integer", "string", "decimal", "float", "boolean", "timestamp"]
 
-ARGV.each do|a|
+ARGV.each do |a|
   title = "#{a}"
   count += 1
 end
 
-if count != 1
+if count != 2
   puts "Incorrect usage. Should be:"
-  puts "ruby generator.rb bpmn.bpmn"
+  puts "ruby generator.rb yourproject.bpmn yourproject.sql"
   exit
 else
-  if title.size < 5 or title[-5..-1] != ".bpmn"
-    puts "Incorrect usage. File type must be BPMN"
+  if ARGV.first.size < 5 or ARGV.first[-5..-1] != ".bpmn"
+    puts "Incorrect usage. First file type must be BPMN"
     exit
   else
-    title = title[0..-6]
+    if ARGV.last.size < 4 or ARGV.last[-4..-1] != ".sql"
+      puts "Incorrect usage. Second file type must be SQL"
+      exit
+    else
+      title = title[0..-5]
+    end
   end
 end
 
 # Reading BPMN file
 bpmn = File.open("#{title}.bpmn")
 doc = Nokogiri::XML(bpmn)
+# Reading SQL file
+er = File.open("#{title}.sql", 'r')
 
 # Creating Rails project
 system "rails new #{title}"
@@ -120,7 +129,7 @@ Dir.chdir "#{title}" do
         f.puts "    = javascript_include_tag 'application'"
       else
         if line =~ /web-app-theme\.logout/
-          f.puts "              = current_user.email
+          f.puts "              = current_user.email"
           f.puts "            %li"
           f.puts "              = link_to t(\"web-app-theme.logout\", :default => \"Logout\"), destroy_user_session_path, :method => :delete"
         else
@@ -224,25 +233,6 @@ Dir.chdir "#{title}" do
   f.close
   system "rake db:seed"
   
-  # Registrations controller
-  system "mkdir app/controllers/devise"
-  system "cp ../generator_files/registrations_controller.rb app/controllers/devise/registrations_controller.rb"
-  system "cp ../generator_files/_sidebar.html.haml app/views/devise/registrations/_sidebar.html.haml"
-  
-  
-  # Admin controller
-  system "rails g controller admin home"
-  system "cp ../generator_files/_sidebar.html.haml app/views/admin/_sidebar.html.haml"
-  f = File.open("app/views/admin/home.html.haml", 'w')
-  f.puts ".block"
-  f.puts "  .content"
-  f.puts "    %h2.title"
-  f.puts "      Administration"
-  f.puts "    .inner"
-  f.puts "      Start page for Administration."
-  f.puts "- content_for :sidebar, render(:partial => 'sidebar')"
-  f.close
-  
   # Home page layout
   f = File.open("app/views/home/_sidebar.html.haml", 'w')
   f.puts ".block"
@@ -325,6 +315,219 @@ Dir.chdir "#{title}" do
       f.close
     end
   end
+  
+  # Parsing the SQL file
+  models = []
+  while line = er.gets
+    if line =~ /CREATE[ ]+TABLE[ ]+/
+      # Entity
+      model = {"name" => line[line.index(".")+2..-5]}
+      model["line"] = line
+      model["attr"] = []
+      model["fk"] = []
+      line = er.gets
+      # Attributes
+      while not line =~ /PRIMARY[ ]+KEY[ ]*\(/ and not line =~ /INDEX[ ]+/
+        attribute = {"name" => (/`(.*)`/.match(line)[1..-1]).first}
+        attribute["line"] = line
+        temptype = (/`.*`[ ]*(.*)[ ]*,/.match(line)[1..-1]).first
+        attribute["type"] = nil
+        attribute["type"] = "integer" if temptype =~ /INT/
+        attribute["type"] = "string" if temptype =~ /TEXT/ or temptype =~ /VARCHAR/
+        attribute["type"] = "decimal" if temptype =~ /DECIMAL/
+        attribute["type"] = "float" if temptype =~ /FLOAT/
+        attribute["type"] = "boolean" if temptype =~ /BOOL/
+        attribute["type"] = "timestamp" if temptype =~ /TIMESTAMP/
+        attribute["type"] = "auto_increment" if temptype =~ /AUTO_INCREMENT/
+        model["attr"] << attribute if attribute["type"]
+        line = er.gets
+      end
+      # Other data
+      while not line =~ /ENGINE[ ]*=[ ]*/
+        # Primary Key
+        if line =~ /PRIMARY[ ]+KEY[ ]*\(/
+          model["pk"] = line[line.index("(")+2..line.index(")")-2]
+          model["attr"].each do |a|
+            if a["name"].eql? model["pk"] and a["type"].eql? "auto_increment"
+              model["attr"].delete(a)
+            end
+          end
+        end
+        # Foreign Key
+        if line =~ /FOREIGN[ ]+KEY[ ]*\(/
+          fk = {"attr" => line[line.index("(")+2..line.index(")")-3]}
+          line = er.gets
+          fk["entity"] = line[line.index(".")+2..line.index("(")-3]
+          model["fk"] << fk
+          model["attr"].each do |a|
+            if a["name"].eql? fk["attr"]
+              a["name"] = fk["entity"].downcase
+              a["type"] = fk["entity"]
+            end
+          end
+        end
+        line = er.gets
+      end
+      models << model
+    end
+  end
+  
+  # Registrations controller
+  system "mkdir app/controllers/devise"
+  system "cp ../generator_files/registrations_controller.rb app/controllers/devise/registrations_controller.rb"
+  #system "cp ../generator_files/_sidebar.html.haml app/views/devise/registrations/_sidebar.html.haml"
+  lines = []
+  f = File.open("../generator_files/_sidebar.html.haml", 'r')
+  while line = f.gets
+    lines << line
+  end
+  f.close
+  f = File.open("app/views/devise/registrations/_sidebar.html.haml", 'w')
+  lines.each do |line|
+    f.puts line
+  end
+  models.each do |model|
+    f.puts "    %li"
+    f.puts "      %a{:href => \"/#{ActiveSupport::Inflector.pluralize(model["name"].downcase)}\"} #{model["name"]}"
+  end
+  f.close
+  
+  # Admin controller
+  system "rails g controller admin home"
+  system "cp app/views/devise/registrations/_sidebar.html.haml app/views/admin/_sidebar.html.haml"
+  f = File.open("app/views/admin/home.html.haml", 'w')
+  f.puts ".block"
+  f.puts "  .content"
+  f.puts "    %h2.title"
+  f.puts "      Administration"
+  f.puts "    .inner"
+  f.puts "      Start page for Administration."
+  f.puts "- content_for :sidebar, render(:partial => 'sidebar')"
+  f.close
+  lines = []
+  f = File.open("app/controllers/admin_controller.rb", 'r')
+  while line = f.gets
+    lines << line
+  end
+  f.close
+  f = File.open("app/controllers/admin_controller.rb", 'w')
+    lines.each do |line|
+      f.puts line
+      f.puts "    return if auth(\"website_administrator\")" if line =~ / def .+/
+    end
+  f.close
+  
+  # Generating scaffolds
+  models.each do |model|
+    command = "rails g scaffold #{model["name"]}"
+    model["attr"].each do |a|
+      a["name"] = a["name"][0..-model["name"].size-1] if a["name"][a["name"].size-model["name"].size..-1].eql? model["name"]
+      command += " #{a["name"]}:#{a["type"]}" if types.index(a["type"])
+      command += " #{a["name"]}_id:integer" unless types.index(a["type"])
+    end
+    command += " && rake db:migrate"
+    puts command
+    system command
+    # Creating relationships
+    lines = []
+    f = File.open("app/models/#{model["name"].downcase}.rb", 'r')
+    while line = f.gets
+      lines << line
+    end
+    f.close
+    f = File.open("app/models/#{model["name"].downcase}.rb", 'w')
+    lines.each do |line|
+      f.puts line
+      if line =~ /ActiveRecord::Base/
+        model["attr"].each do |a|
+          f.puts "  belongs_to :#{a["name"]}" unless types.index(a["type"])
+          f.puts "  def to_string"
+          f.puts "    return name"
+          f.puts "  end"
+        end
+      end
+    end
+    f.close
+    # Web-app-theme
+    system "rm app/views/#{ActiveSupport::Inflector.pluralize(model["name"].downcase)}/*"
+    system "rails g web_app_theme:themed #{ActiveSupport::Inflector.pluralize(model["name"].downcase)} --will-paginate --engine=haml"
+    lines = []
+    f = File.open("app/controllers/#{ActiveSupport::Inflector.pluralize(model["name"].downcase)}_controller.rb", 'r')
+    while line = f.gets
+      lines << line
+    end
+    f.close
+    f = File.open("app/controllers/#{ActiveSupport::Inflector.pluralize(model["name"].downcase)}_controller.rb", 'w')
+      lines.each do |line|
+        if line =~ /@#{ActiveSupport::Inflector.pluralize(model["name"].downcase)} = #{model["name"]}.all/
+          f.puts "    @#{ActiveSupport::Inflector.pluralize(model["name"].downcase)} = #{model["name"]}.page(params[:page])"
+        else
+          f.puts line
+          f.puts "    return if auth(\"website_administrator\")" if line =~ / def .+/
+        end
+      end
+    f.close
+    system "cp app/views/devise/registrations/_sidebar.html.haml app/views/#{ActiveSupport::Inflector.pluralize(model["name"].downcase)}/_sidebar.html.haml"
+    # Improving forms
+    lines = []
+    f = File.open("app/views/#{ActiveSupport::Inflector.pluralize(model["name"].downcase)}/_form.html.haml", 'r')
+    while line = f.gets
+      lines << line
+    end
+    f.close
+    f = File.open("app/views/#{ActiveSupport::Inflector.pluralize(model["name"].downcase)}/_form.html.haml", 'w')
+    lines.each do |line|
+      if line =~ /= f.number_field/
+        count = 0
+        model["attr"].each do |a|
+          if line.index("#{a["name"]}_id") and line.index("#{a["type"].downcase}_id")
+            count += 1
+            f.puts "  = select(\"#{model["name"].downcase}\", \"#{a["name"]}_id\", #{a["type"]}.all.collect {|p| [ p.to_string, p.id ] })"
+          end
+        end
+        f.puts line if count == 0
+      else
+        f.puts line
+      end
+    end
+    f.close
+    # Improving list views
+    lines = []
+    f = File.open("app/views/#{ActiveSupport::Inflector.pluralize(model["name"].downcase)}/index.html.haml", 'r')
+    while line = f.gets
+      lines << line
+    end
+    f.close
+    f = File.open("app/views/#{ActiveSupport::Inflector.pluralize(model["name"].downcase)}/index.html.haml", 'w')
+    lines.each do |line|
+      if line =~ /= will_paginate @#{ActiveSupport::Inflector.pluralize(model["name"].downcase)}/
+        f.puts "        = paginate @#{ActiveSupport::Inflector.pluralize(model["name"].downcase)}"
+      else
+        f.puts line
+      end
+    end
+    f.close
+    # Improving object views
+    lines = []
+    f = File.open("app/views/#{ActiveSupport::Inflector.pluralize(model["name"].downcase)}/show.html.haml", 'r')
+    while line = f.gets
+      lines << line
+    end
+    f.close
+    f = File.open("app/views/#{ActiveSupport::Inflector.pluralize(model["name"].downcase)}/show.html.haml", 'w')
+    lines.each do |line|
+      count = 0
+      model["attr"].each do |a|
+        if line =~ /= @#{model["name"].downcase}.#{a["type"].downcase}_id/ and not types.index(a["type"])
+          count += 1
+          f.puts "        = #{a["type"]}.find(@#{model["name"].downcase}.#{a["type"].downcase}_id).to_string"
+        end
+      end
+      f.puts line if count == 0
+    end
+    f.close
+  end
+  system "rails g kaminari:views default -e haml"
   
   # Configuring routes
   lines = []
