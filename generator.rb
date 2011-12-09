@@ -19,7 +19,6 @@ else
     exit
   else
     title = title[0..-6]
-    puts title
   end
 end
 
@@ -28,18 +27,11 @@ bpmn = File.open("#{title}.bpmn")
 doc = Nokogiri::XML(bpmn)
 
 # Creating Rails project
-puts "Creating Rails project"
 system "rails new #{title}"
 Dir.chdir "#{title}" do
 
   # Editing Gemfile
-  f1 = File.open("../generator_files/Gemfile", 'r')
-  f2 = File.open("Gemfile", 'w')
-  while line = f1.gets
-    f2.puts line
-  end
-  f1.close
-  f2.close
+  system "cp ../generator_files/Gemfile Gemfile"
 
   # Bundle install
   system "bundle install"
@@ -107,29 +99,11 @@ Dir.chdir "#{title}" do
   f.close
   system "rails g devise:views"
   system "rm app/views/devise/sessions/new.html.erb"
-  f1 = File.open("../generator_files/sessions_new.html.haml", 'r')
-  f2 = File.open("app/views/devise/sessions/new.html.haml", 'w')
-  while line = f1.gets
-    f2.puts line
-  end
-  f1.close
-  f2.close
-  #system "rm app/views/devise/registrations/edit.html.erb"
-  f1 = File.open("../generator_files/registrations_edit.html.haml", 'r')
-  f2 = File.open("app/views/devise/registrations/edit.html.haml", 'w')
-  while line = f1.gets
-    f2.puts line
-  end
-  f1.close
-  f2.close
+  system "cp ../generator_files/sessions_new.html.haml app/views/devise/sessions/new.html.haml"
+  system "rm app/views/devise/registrations/edit.html.erb"
+  system "cp ../generator_files/registrations_edit.html.haml app/views/devise/registrations/edit.html.haml"
   system "rm app/views/devise/registrations/new.html.erb"
-  f1 = File.open("../generator_files/registrations_new.html.haml", 'r')
-  f2 = File.open("app/views/devise/registrations/new.html.haml", 'w')
-  while line = f1.gets
-    f2.puts line
-  end
-  f1.close
-  f2.close
+  system "cp ../generator_files/registrations_new.html.haml app/views/devise/registrations/new.html.haml"
   lines = []
   f = File.open("app/views/layouts/application.html.haml", 'r')
   while line = f.gets
@@ -146,7 +120,7 @@ Dir.chdir "#{title}" do
         f.puts "    = javascript_include_tag 'application'"
       else
         if line =~ /web-app-theme\.logout/
-          f.puts "              = link_to 'Edit account', '/users/edit'"
+          f.puts "              = current_user.email
           f.puts "            %li"
           f.puts "              = link_to t(\"web-app-theme.logout\", :default => \"Logout\"), destroy_user_session_path, :method => :delete"
         else
@@ -158,13 +132,7 @@ Dir.chdir "#{title}" do
     dontput = 4 if line =~ /ul.wat-cf/ and dontput == -1
   end
   f.close
-  f1 = File.open("../generator_files/application_controller.rb", 'r')
-  f2 = File.open("app/controllers/application_controller.rb", 'w')
-  while line = f1.gets
-    f2.puts line
-  end
-  f1.close
-  f2.close
+  system "cp ../generator_files/application_controller.rb app/controllers/application_controller.rb"
   lines = []
   f = File.open("app/views/layouts/sign.html.haml", 'r')
   while line = f.gets
@@ -177,15 +145,7 @@ Dir.chdir "#{title}" do
     f.puts "        %h1 #{title}" if line =~ /#box/
   end
   f.close
-  f1 = File.open("../generator_files/seeds.rb", 'r')
-  f2 = File.open("db/seeds.rb", 'w')
-  while line = f1.gets
-    f2.puts line
-  end
-  f1.close
-  f2.close
-  #system "rails g devise_invitable:install"
-  #system "rails g devise_invitable user"
+  system "cp ../generator_files/seeds.rb db/seeds.rb"
 
   # Parsing the BPMN file
   pools = []
@@ -264,24 +224,46 @@ Dir.chdir "#{title}" do
   f.close
   system "rake db:seed"
   
+  # Registrations controller
+  system "mkdir app/controllers/devise"
+  system "cp ../generator_files/registrations_controller.rb app/controllers/devise/registrations_controller.rb"
+  system "cp ../generator_files/_sidebar.html.haml app/views/devise/registrations/_sidebar.html.haml"
+  
+  
+  # Admin controller
+  system "rails g controller admin home"
+  system "cp ../generator_files/_sidebar.html.haml app/views/admin/_sidebar.html.haml"
+  f = File.open("app/views/admin/home.html.haml", 'w')
+  f.puts ".block"
+  f.puts "  .content"
+  f.puts "    %h2.title"
+  f.puts "      Administration"
+  f.puts "    .inner"
+  f.puts "      Start page for Administration."
+  f.puts "- content_for :sidebar, render(:partial => 'sidebar')"
+  f.close
+  
   # Home page layout
   f = File.open("app/views/home/_sidebar.html.haml", 'w')
   f.puts ".block"
   f.puts "  %h3 Pages"
   f.puts "  %ul.navigation"
+  f.puts "    - if current_user.roles.index(\"website_administrator\")"
+  f.puts "      %li"
+  f.puts "        %a{:href => \"admin\/\"} Administration"
   pools.each do |pool|
     f.puts "    %li"
     f.puts "      %a{:href => \"#{pool["code"]}\/\"} #{pool["title"]}"
   end
   f = File.open("app/views/home/index.html.haml", 'w')
-      f.puts ".block"
-      f.puts "  .content"
-      f.puts "    %h2.title"
-      f.puts "      #{title}"
-      f.puts "    .inner"
-      f.puts "      Start page for #{title}."
-      f.puts "- content_for :sidebar, render(:partial => 'sidebar')"
-      f.close
+  f.puts ".block"
+  f.puts "  .content"
+  f.puts "    %h2.title"
+  f.puts "      #{title}"
+  f.puts "    .inner"
+  f.puts "      Start page for #{title}."
+  f.puts "- content_for :sidebar, render(:partial => 'sidebar')"
+  f.close
   
   # Creating controllers
   pools.each do |pool|
@@ -352,20 +334,30 @@ Dir.chdir "#{title}" do
   end
   f.close
   f = File.open("config/routes.rb", 'w')
+  pages = ["admin"]
+  pools.each do |pool|
+    pages << pool["code"]
+  end
   lines.each do |line|
-    if line =~ /#{pools.last["code"]}\/home/ # Nao esta correcto!!!!!!!!!
-      f.puts "  match \"#{pools.last["code"]}\/\" => \"#{pools.last["code"]}#home\"" # Nao esta correcto!!!!!!!!!
+    if line =~ /\/home/
+      pages.each do |page|
+        f.puts "  match \"#{page}\/\" => \"#{page}#home\"" if line =~ /#{page}\/home/
+      end
     else
-      f.puts line
-      f.puts "  root :to => \"home#index\"" if line =~ /::Application.routes.draw do/
+      if line =~ /devise_for :users/
+        f.puts "  devise_for :users, :controllers => { :registrations => \"devise\/registrations\" }"
+      else
+        f.puts line
+        f.puts "  root :to => \"home#index\"" if line =~ /::Application.routes.draw do/
+      end
     end
   end
   f.close
   
-  puts "\nRuby on Rails project #{title} created."
+  puts "\n\nRuby on Rails project #{title} created.\n"
   puts "Administration account:"
-  puts "Email: admin@example.com"
-  puts "Password: password\n"
+  puts "Email:\t\tadmin@example.com"
+  puts "Password:\tpassword\n"
 
 end
 bpmn.close

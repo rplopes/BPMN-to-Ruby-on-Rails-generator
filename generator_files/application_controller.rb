@@ -8,7 +8,8 @@ class ApplicationController < ActionController::Base
   end
   
   def auth(role)
-    redirect_to root_path, :flash => {:error => "You don't have access to that page."} and return unless current_user.roles.index(role)
+    redirect_to root_path, :flash => {:error => "You don't have access to that page."} and return true unless current_user and current_user.roles.index(role)
+    return false
   end
 
   private
