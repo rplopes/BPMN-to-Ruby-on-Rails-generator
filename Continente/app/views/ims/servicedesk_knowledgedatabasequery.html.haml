@@ -4,4 +4,5 @@
       Knowledge database query
     .inner
       Page for Knowledge database query, accessible by Service Desk.
+      = session[:current_incident].description if session[:current_incident]
 - content_for :sidebar, render(:partial => 'sidebar')

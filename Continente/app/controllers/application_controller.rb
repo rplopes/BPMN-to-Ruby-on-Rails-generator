@@ -11,6 +11,11 @@ class ApplicationController < ActionController::Base
     redirect_to root_path, :flash => {:error => "You don't have access to that page."} and return true unless current_user and current_user.roles.index(role)
     return false
   end
+  
+  def auth2(role1, role2)
+    redirect_to root_path, :flash => {:error => "You don't have access to that page."} and return true unless current_user and (current_user.roles.index(role1) or current_user.roles.index(role2))
+    return false
+  end
 
   private
   def after_sign_out_path_for(resource_or_scope)

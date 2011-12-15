@@ -42,14 +42,14 @@
           = "--" unless @incident.office_id
       %p
         %b
-          - if @incident.resolution.size == 0
+          - if @incident.resolution and @incident.resolution.size == 0
             Unresolved incident
       %p
         %b
           = t("activerecord.attributes.incident.description", :default => t("activerecord.labels.description", :default => "Description"))
           %br
         = @incident.description
-      - if @incident.resolution.size > 0
+      - if @incident.resolution and @incident.resolution.size > 0
         %p
           %b
             = t("activerecord.attributes.incident.resolution", :default => t("activerecord.labels.resolution", :default => "Resolution"))

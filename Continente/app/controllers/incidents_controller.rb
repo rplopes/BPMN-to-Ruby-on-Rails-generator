@@ -44,16 +44,27 @@ class IncidentsController < ApplicationController
   # POST /incidents
   # POST /incidents.json
   def create
-    return if auth("website_administrator")
+    return if auth2("website_administrator", "ims_servicedesk")
     @incident = Incident.new(params[:incident])
 
     respond_to do |format|
-      if @incident.save
-        format.html { redirect_to @incident, :notice => 'Incident was successfully created.' }
-        format.json { render :json => @incident, :status => :created, :location => @incident }
+      if current_user and current_user.roles.index("ims_servicedesk")
+        if @incident.save
+          session[:current_incident] = @incident
+          format.html { redirect_to ims_servicedesk_knowledgedatabasequery_path, :notice => 'Incident was successfully created.' }
+          format.json { render :json => @incident, :status => :created, :location => @incident }
+        else
+          format.html { redirect_to ims_servicedesk_loggingandclassification_path }
+          format.json { render :json => @incident.errors, :status => :unprocessable_entity }
+        end
       else
-        format.html { render :action => "new" }
-        format.json { render :json => @incident.errors, :status => :unprocessable_entity }
+        if @incident.save
+          format.html { redirect_to @incident, :notice => 'Incident was successfully created.' }
+          format.json { render :json => @incident, :status => :created, :location => @incident }
+        else
+          format.html { render :action => "new" }
+          format.json { render :json => @incident.errors, :status => :unprocessable_entity }
+        end
       end
     end
   end
