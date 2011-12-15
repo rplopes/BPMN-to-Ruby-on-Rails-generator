@@ -47,13 +47,13 @@
       %p
         %b
           = t("activerecord.attributes.incident.description", :default => t("activerecord.labels.description", :default => "Description"))
-          \:
+          %br
         = @incident.description
       - if @incident.resolution.size > 0
         %p
           %b
             = t("activerecord.attributes.incident.resolution", :default => t("activerecord.labels.resolution", :default => "Resolution"))
-            \:
+            %br
           = @incident.resolution
       .wat-cf
         = link_to image_tag("web-app-theme/icons/application_edit.png", :alt => "#{t("web-app-theme.edit", :default=> "Edit")}") + " " + t("web-app-theme.edit", :default=> "Edit"), edit_incident_path(@incident), :class => "button"
