@@ -10,7 +10,7 @@
     .inner
       %table.table
         %tr
-          %th.first ID
+          %th.first Priority
           %th
             = t("activerecord.attributes.incident.description", :default => t("activerecord.labels.description", :default => "Description"))
           %th= t("web-app-theme.created_at", :default => "Created at")
@@ -18,7 +18,7 @@
         - @incidents.each do |incident|
           %tr{:class => cycle("odd", "even")}
             %td
-              = incident.id
+              = incident.impact * incident.urgency
             %td
               = link_to incident.description, incident_path(incident)
             %td

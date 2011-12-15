@@ -8,6 +8,11 @@
     .inner
       %p
         %b
+          Priority
+          \:
+        = "#{@incident.impact * @incident.urgency} (#{@incident.impact} impact * #{@incident.urgency} urgency)"
+      %p
+        %b
           = t("activerecord.attributes.incident.category_id", :default => t("activerecord.labels.category_id", :default => "Category"))
           \:
         = Category.find(@incident.category_id).to_string if @incident.category_id

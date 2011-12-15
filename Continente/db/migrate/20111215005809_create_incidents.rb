@@ -8,6 +8,8 @@ class CreateIncidents < ActiveRecord::Migration
       t.integer :storage_id
       t.integer :store_id
       t.integer :office_id
+      t.integer :impact
+      t.integer :urgency
 
       t.timestamps
     end

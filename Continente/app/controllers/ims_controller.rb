@@ -8,6 +8,16 @@ class ImsController < ApplicationController
 
   def servicedesk_knowledgedatabasequery
     auth("ims_servicedesk")
+    incidents = Incident.where("resolution IS NOT NULL")
+    @incidents = []
+    incidents.each do |incident|
+      @incidents << incident if incident.resolution.size > 0
+    end
+
+    respond_to do |format|
+      format.html # index.html.erb
+      format.json { render :json => @incidents }
+    end
   end
 
   def infrastructureresponsible_productincidentresolution

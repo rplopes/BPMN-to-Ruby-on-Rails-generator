@@ -1,11 +1,64 @@
 .block
-	.content
-		%h2.title
-			Logging and classification
-		.inner
-			- if session[:current_incident]
-				session[:current_incident].description
-			- else
-				= form_for :incident, :url => incidents_path, :html => { :class => :form } do |f|
-					= render :partial => "lac_form", :locals => {:f => f}
+  .content
+    %h2.title
+      Logging and classification
+    .inner
+      - if session[:current_incident]
+        - @incident = session[:current_incident]
+        %p
+          Currently working on the following incident:
+          %br
+        %p
+          %b
+            Priority
+            \:
+          = "#{@incident.impact * @incident.urgency} (#{@incident.impact} impact * #{@incident.urgency} urgency)"
+        %p
+          %b
+            = t("activerecord.attributes.incident.category_id", :default => t("activerecord.labels.category_id", :default => "Category"))
+            \:
+          = Category.find(@incident.category_id).to_string if @incident.category_id
+          = "--" unless @incident.category_id
+        - if @incident.supplier_id
+          %p
+            %b
+              = t("activerecord.attributes.incident.supplier_id", :default => t("activerecord.labels.supplier_id", :default => "Supplier"))
+              \:
+            = Supplier.find(@incident.supplier_id).to_string if @incident.supplier_id
+            = "--" unless @incident.supplier_id
+        - if @incident.storage_id
+          %p
+            %b
+              = t("activerecord.attributes.incident.storage_id", :default => t("activerecord.labels.storage_id", :default => "Storage"))
+              \:
+            = Storage.find(@incident.storage_id).to_string if @incident.storage_id
+            = "--" unless @incident.storage_id
+        - if @incident.store_id
+          %p
+            %b
+              = t("activerecord.attributes.incident.store_id", :default => t("activerecord.labels.store_id", :default => "Store"))
+              \:
+            = Store.find(@incident.store_id).to_string if @incident.store_id
+            = "--" unless @incident.store_id
+        - if @incident.office_id
+          %p
+            %b
+              = t("activerecord.attributes.incident.office_id", :default => t("activerecord.labels.office_id", :default => "Office"))
+              \:
+            = Office.find(@incident.office_id).to_string if @incident.office_id
+            = "--" unless @incident.office_id
+        %p
+          %b
+            - if @incident.resolution and @incident.resolution.size == 0
+              Unresolved incident
+        %p
+          %b
+            = t("activerecord.attributes.incident.description", :default => t("activerecord.labels.description", :default => "Description"))
+          %br
+        = @incident.description
+      
+      - else
+        = form_for :incident, :url => incidents_path, :html => { :class => :form } do |f|
+          = render :partial => "lac_form", :locals => {:f => f}
+          
 - content_for :sidebar, render(:partial => 'sidebar')

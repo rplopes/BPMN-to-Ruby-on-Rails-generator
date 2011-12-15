@@ -1,4 +1,10 @@
 .group
+  = f.label :impact, "Impact", :class => :label
+  = select("incident", "impact", (1..5).collect {|n| [ n, n ] })
+.group
+  = f.label :urgency, "Urgency", :class => :label
+  = select("incident", "urgency", (1..5).collect {|n| [ n, n ] })
+  .group
   = f.label :category_id, t("activerecord.attributes.incident.category_id", :default => "Category"), :class => :label
   = select("incident", "category_id", Category.all.collect {|p| [ p.to_string, p.id ] }, {:include_blank => 'No category'})
 .group
@@ -20,8 +26,8 @@
   = f.label :description, t("activerecord.attributes.incident.description", :default => "Description"), :class => :label
   = f.text_area :description, :class => 'text_area'
 .group
-  = #f.label :resolution, t("activerecord.attributes.incident.resolution", :default => "Resolution"), :class => :label
-  = #f.text_area :resolution, :class => 'text_area'
+  = f.label :resolution, t("activerecord.attributes.incident.resolution", :default => "Resolution"), :class => :label
+  = f.text_area :resolution, :class => 'text_area'
 .group.navform.wat-cf
   %button.button{:type => "submit"}
     = image_tag("web-app-theme/icons/tick.png", :alt => "#{t("web-app-theme.save", :default => "Save")}")

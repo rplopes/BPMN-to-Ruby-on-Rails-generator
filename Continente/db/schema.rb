@@ -32,6 +32,8 @@ ActiveRecord::Schema.define(:version => 20111215005809) do
     t.integer  "storage_id"
     t.integer  "store_id"
     t.integer  "office_id"
+    t.integer  "impact"
+    t.integer  "urgency"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

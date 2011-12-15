@@ -1,4 +1,10 @@
 .group
+  = f.label :impact, "Impact", :class => :label
+  = select("incident", "impact", (1..5).collect {|n| [ n, n ] })
+.group
+  = f.label :urgency, "Urgency", :class => :label
+  = select("incident", "urgency", (1..5).collect {|n| [ n, n ] })
+.group
   = f.label :category_id, t("activerecord.attributes.incident.category_id", :default => "Category"), :class => :label
   = select("incident", "category_id", Category.all.collect {|p| [ p.to_string, p.id ] }, {:include_blank => 'No category'})
 .group

@@ -1,8 +1,27 @@
 .block
+  .secondary-navigation
+    %ul.wat-cf
+      %li.first.active= link_to "Resolved incidents", ims_servicedesk_knowledgedatabasequery_path
   .content
     %h2.title
       Knowledge database query
     .inner
-      Page for Knowledge database query, accessible by Service Desk.
-      = session[:current_incident].description if session[:current_incident]
+      - if session[:current_incident]
+        %table.table
+          %tr
+            %th.first Priority
+            %th
+              = t("activerecord.attributes.incident.description", :default => t("activerecord.labels.description", :default => "Category"))
+            %th= t("web-app-theme.created_at", :default => "Created at")
+          - @incidents.each do |incident|
+            %tr{:class => cycle("odd", "even")}
+              %td
+                = link_to incident.impact * incident.urgency, incident_path(incident)
+              %td
+                = link_to incident.category.to_string, incident_path(incident) if incident.category
+                = link_to "None", incident_path(incident) unless incident.category
+              %td
+                = incident.created_at
+      - else
+        Register a new incident to query the knowledge database for a resolution.
 - content_for :sidebar, render(:partial => 'sidebar')
