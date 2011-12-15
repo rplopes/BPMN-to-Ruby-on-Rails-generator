@@ -90,18 +90,58 @@ ENGINE = InnoDB;
 
 
 -- -----------------------------------------------------
--- Table `mydb`.`Product`
+-- Table `mydb`.`Category`
 -- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS `mydb`.`Product` (
-  `idProduct` INT NOT NULL AUTO_INCREMENT ,
-  `nameProduct` TEXT NOT NULL ,
-  `Supplier_idSupplier` INT NOT NULL ,
-  PRIMARY KEY (`idProduct`) ,
-  UNIQUE INDEX `idProduct_UNIQUE` (`idProduct` ASC) ,
-  INDEX `fk_Product_Supplier1` (`Supplier_idSupplier` ASC) ,
-  CONSTRAINT `fk_Product_Supplier1`
+CREATE  TABLE IF NOT EXISTS `mydb`.`Category` (
+  `idCategory` INT NOT NULL AUTO_INCREMENT ,
+  `nameCategory` VARCHAR(45) NOT NULL ,
+  PRIMARY KEY (`idCategory`) ,
+  UNIQUE INDEX `idIncidentCategory_UNIQUE` (`idCategory` ASC) )
+ENGINE = InnoDB;
+
+
+-- -----------------------------------------------------
+-- Table `mydb`.`Incident`
+-- -----------------------------------------------------
+CREATE  TABLE IF NOT EXISTS `mydb`.`Incident` (
+  `idIncident` INT NOT NULL AUTO_INCREMENT ,
+  `descriptionIncident` TEXT NOT NULL ,
+  `resolutionIncident` TEXT NULL ,
+  `Category_idCategory` INT NULL ,
+  `Supplier_idSupplier` INT NULL ,
+  `Storage_idStorage` INT NULL ,
+  `Store_idStore` INT NULL ,
+  `Office_idOffice` INT NULL ,
+  PRIMARY KEY (`idIncident`) ,
+  UNIQUE INDEX `idIncident_UNIQUE` (`idIncident` ASC) ,
+  INDEX `fk_Incident_IncidentCategory1` (`Category_idCategory` ASC) ,
+  INDEX `fk_Incident_Supplier1` (`Supplier_idSupplier` ASC) ,
+  INDEX `fk_Incident_Storage1` (`Storage_idStorage` ASC) ,
+  INDEX `fk_Incident_Store1` (`Store_idStore` ASC) ,
+  INDEX `fk_Incident_Office1` (`Office_idOffice` ASC) ,
+  CONSTRAINT `fk_Incident_IncidentCategory1`
+    FOREIGN KEY (`Category_idCategory` )
+    REFERENCES `mydb`.`Category` (`idCategory` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Incident_Supplier1`
     FOREIGN KEY (`Supplier_idSupplier` )
     REFERENCES `mydb`.`Supplier` (`idSupplier` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Incident_Storage1`
+    FOREIGN KEY (`Storage_idStorage` )
+    REFERENCES `mydb`.`Storage` (`idStorage` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Incident_Store1`
+    FOREIGN KEY (`Store_idStore` )
+    REFERENCES `mydb`.`Store` (`idStore` )
+    ON DELETE NO ACTION
+    ON UPDATE NO ACTION,
+  CONSTRAINT `fk_Incident_Office1`
+    FOREIGN KEY (`Office_idOffice` )
+    REFERENCES `mydb`.`Office` (`idOffice` )
     ON DELETE NO ACTION
     ON UPDATE NO ACTION)
 ENGINE = InnoDB;

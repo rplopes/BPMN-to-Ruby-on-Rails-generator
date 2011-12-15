@@ -1,8 +1,6 @@
 source 'http://rubygems.org'
 
 gem 'rails', '3.1.1'
-gem 'thin'
-gem 'heroku'
 
 group :production do
   gem 'pg'
@@ -16,14 +14,6 @@ group :development, :test do
   gem 'web-app-theme', '~>0.8.0'
 end
 
-gem 'json'
-gem 'nifty-generators'
-gem 'nokogiri'
-gem 'haml'
-gem 'devise'
-gem 'kaminari'
-gem 'cancan'
-
 group :assets do
   gem 'sass-rails',   '~> 3.1.4'
   gem 'coffee-rails', '~> 3.1.1'
@@ -31,3 +21,10 @@ group :assets do
 end
 
 gem 'jquery-rails'
+gem 'json'
+gem 'nifty-generators'
+gem 'nokogiri'
+gem 'haml'
+gem 'devise'
+gem 'kaminari'
+gem 'cancan'

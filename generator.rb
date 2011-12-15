@@ -436,15 +436,18 @@ Dir.chdir "#{title}" do
     end
     f.close
     f = File.open("app/models/#{model["name"].downcase}.rb", 'w')
+    has_name = false
     lines.each do |line|
       f.puts line
       if line =~ /ActiveRecord::Base/
         model["attr"].each do |a|
           f.puts "  belongs_to :#{a["name"]}" unless types.index(a["type"])
-          f.puts "  def to_string"
-          f.puts "    return name"
-          f.puts "  end"
+          has_name = true if a["name"].eql? "name"
         end
+        f.puts "  def to_string"
+        f.puts "    return name" if has_name
+        f.puts "    return \"#{model["name"]} \#{id}\"" unless has_name
+        f.puts "  end"
       end
     end
     f.close
@@ -520,7 +523,8 @@ Dir.chdir "#{title}" do
       model["attr"].each do |a|
         if line =~ /= @#{model["name"].downcase}.#{a["type"].downcase}_id/ and not types.index(a["type"])
           count += 1
-          f.puts "        = #{a["type"]}.find(@#{model["name"].downcase}.#{a["type"].downcase}_id).to_string"
+          f.puts "        = #{a["type"]}.find(@#{model["name"].downcase}.#{a["type"].downcase}_id).to_string if @#{model["name"].downcase}.#{a["type"].downcase}_id"
+          f.puts "        = \"--\" unless @#{model["name"].downcase}.#{a["type"].downcase}_id"
         end
       end
       f.puts line if count == 0
