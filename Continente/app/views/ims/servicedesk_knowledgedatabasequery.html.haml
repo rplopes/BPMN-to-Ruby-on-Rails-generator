@@ -1,27 +1,84 @@
 .block
   .secondary-navigation
     %ul.wat-cf
-      %li.first.active= link_to "Resolved incidents", ims_servicedesk_knowledgedatabasequery_path
+      - if @resolved_incident
+        %li.first= link_to "Resolved incidents", ims_servicedesk_knowledgedatabasequery_path
+        %li.active= link_to "Resolved incident", ims_servicedesk_knowledgedatabasequery_path(:id => @resolved_incident.id)
+      - else
+        %li.first.active= link_to "Resolved incidents", ims_servicedesk_knowledgedatabasequery_path
   .content
     %h2.title
       Knowledge database query
     .inner
       - if session[:current_incident]
-        %table.table
-          %tr
-            %th.first Priority
-            %th
-              = t("activerecord.attributes.incident.description", :default => t("activerecord.labels.description", :default => "Category"))
-            %th= t("web-app-theme.created_at", :default => "Created at")
-          - @incidents.each do |incident|
-            %tr{:class => cycle("odd", "even")}
-              %td
-                = link_to incident.impact * incident.urgency, incident_path(incident)
-              %td
-                = link_to incident.category.to_string, incident_path(incident) if incident.category
-                = link_to "None", incident_path(incident) unless incident.category
-              %td
-                = incident.created_at
+        - if @resolved_incident
+          %p
+            %b
+              Priority
+              \:
+            = "#{@resolved_incident.impact * @resolved_incident.urgency} (#{@resolved_incident.impact} impact * #{@resolved_incident.urgency} urgency)"
+          %p
+            %b
+              = t("activerecord.attributes.incident.category_id", :default => t("activerecord.labels.category_id", :default => "Category"))
+              \:
+            = Category.find(@resolved_incident.category_id).to_string if @resolved_incident.category_id
+            = "--" unless @resolved_incident.category_id
+          - if @resolved_incident.supplier_id
+            %p
+              %b
+                = t("activerecord.attributes.incident.supplier_id", :default => t("activerecord.labels.supplier_id", :default => "Supplier"))
+                \:
+              = Supplier.find(@resolved_incident.supplier_id).to_string if @resolved_incident.supplier_id
+              = "--" unless @resolved_incident.supplier_id
+          - if @resolved_incident.storage_id
+            %p
+              %b
+                = t("activerecord.attributes.incident.storage_id", :default => t("activerecord.labels.storage_id", :default => "Storage"))
+                \:
+              = Storage.find(@resolved_incident.storage_id).to_string if @resolved_incident.storage_id
+              = "--" unless @resolved_incident.storage_id
+          - if @resolved_incident.store_id
+            %p
+              %b
+                = t("activerecord.attributes.incident.store_id", :default => t("activerecord.labels.store_id", :default => "Store"))
+                \:
+              = Store.find(@resolved_incident.store_id).to_string if @resolved_incident.store_id
+              = "--" unless @resolved_incident.store_id
+          - if @resolved_incident.office_id
+            %p
+              %b
+                = t("activerecord.attributes.incident.office_id", :default => t("activerecord.labels.office_id", :default => "Office"))
+                \:
+              = Office.find(@resolved_incident.office_id).to_string if @resolved_incident.office_id
+              = "--" unless @resolved_incident.office_id
+          %p
+            %b
+              = t("activerecord.attributes.incident.description", :default => t("activerecord.labels.description", :default => "Description"))
+              %br
+            = @resolved_incident.description
+          - if @resolved_incident.resolution and @resolved_incident.resolution.size > 0
+            %p
+              %b
+                = t("activerecord.attributes.incident.resolution", :default => t("activerecord.labels.resolution", :default => "Resolution"))
+                %br
+              = @resolved_incident.resolution
+
+        -else
+          %table.table
+            %tr
+              %th.first Priority
+              %th
+                = t("activerecord.attributes.incident.description", :default => t("activerecord.labels.description", :default => "Category"))
+              %th= t("web-app-theme.created_at", :default => "Created at")
+            - @incidents.each do |incident|
+              %tr{:class => cycle("odd", "even")}
+                %td
+                  = link_to incident.impact * incident.urgency, ims_servicedesk_knowledgedatabasequery_path(:id => incident.id)
+                %td
+                  = link_to incident.category.to_string, ims_servicedesk_knowledgedatabasequery_path(:id => incident.id) if incident.category
+                  = link_to "None", ims_servicedesk_resolved_path(incident) unless incident.category
+                %td
+                  = incident.created_at
       - else
         Register a new incident to query the knowledge database for a resolution.
 - content_for :sidebar, render(:partial => 'sidebar')

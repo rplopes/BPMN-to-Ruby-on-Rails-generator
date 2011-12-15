@@ -8,15 +8,13 @@ class ImsController < ApplicationController
 
   def servicedesk_knowledgedatabasequery
     auth("ims_servicedesk")
-    incidents = Incident.where("resolution IS NOT NULL")
-    @incidents = []
-    incidents.each do |incident|
-      @incidents << incident if incident.resolution.size > 0
-    end
-
-    respond_to do |format|
-      format.html # index.html.erb
-      format.json { render :json => @incidents }
+    @resolved_incident = Incident.find(params[:id]) if params[:id]
+    unless @resolved_incident
+      incidents = Incident.where("resolution IS NOT NULL")
+      @incidents = []
+      incidents.each do |incident|
+        @incidents << incident if incident.resolution.size > 0
+      end
     end
   end
 
