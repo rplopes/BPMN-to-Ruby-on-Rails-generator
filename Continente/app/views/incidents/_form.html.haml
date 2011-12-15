@@ -1,0 +1,52 @@
+.group
+  = f.label :category_id, t("activerecord.attributes.incident.category_id", :default => "Category"), :class => :label
+  = select("incident", "category_id", Category.all.collect {|p| [ p.to_string, p.id ] }, {:include_blank => 'No category'})
+.group
+  = f.label :name, "Incident related to", :class => :label
+  = select_tag "related", "<option>None</option><option value='Supplier'>Supplier</option><option value='Storage'>Storage</option><option value='Store'>Store</option><option value='Office'>Office</option>".html_safe
+#Supplier-group.group.hidden
+  = f.label :supplier_id, t("activerecord.attributes.incident.supplier_id", :default => "Supplier"), :class => :label
+  = select("incident", "supplier_id", Supplier.all.collect {|p| [ p.to_string, p.id ] }, {:include_blank => 'None'})
+#Storage-group.group.hidden
+  = f.label :storage_id, t("activerecord.attributes.incident.storage_id", :default => "Storage"), :class => :label
+  = select("incident", "storage_id", Storage.all.collect {|p| [ p.to_string, p.id ] }, {:include_blank => 'None'})
+#Store-group.group.hidden
+  = f.label :store_id, t("activerecord.attributes.incident.store_id", :default => "Store"), :class => :label
+  = select("incident", "store_id", Store.all.collect {|p| [ p.to_string, p.id ] }, {:include_blank => 'None'})
+#Office-group.group.hidden
+  = f.label :office_id, t("activerecord.attributes.incident.office_id", :default => "Office"), :class => :label
+  = select("incident", "office_id", Office.all.collect {|p| [ p.to_string, p.id ] }, {:include_blank => 'None'})
+.group
+  = f.label :description, t("activerecord.attributes.incident.description", :default => "Description"), :class => :label
+  = f.text_area :description, :class => 'text_area'
+.group
+  = #f.label :resolution, t("activerecord.attributes.incident.resolution", :default => "Resolution"), :class => :label
+  = #f.text_area :resolution, :class => 'text_area'
+.group.navform.wat-cf
+  %button.button{:type => "submit"}
+    = image_tag("web-app-theme/icons/tick.png", :alt => "#{t("web-app-theme.save", :default => "Save")}")
+    = t("web-app-theme.save", :default => "Save")
+  %span.text_button_padding= t("web-app-theme.or", :default => "or")
+  = link_to t("web-app-theme.cancel", :default => "Cancel"), incidents_path, :class => "text_button_padding link_button"
+
+:javascript
+
+$(function() {
+
+  $('.hidden').hide();
+  $('.hidden').each(function() {
+    if ($(this).find('select') && $(this).find('select').val()) {
+      $(this).show();
+      console.log($(this).find('label').text());
+      $('#related').val($(this).find('label').text());
+    }
+  });
+
+  $('#related').live('change',function(e) {
+    $('.hidden').hide();
+    $('.hidden').find('select').val(null);
+    $val = $('select[name=related] option:selected').text();
+    if ($val)
+      $('#' + $val + '-group').show();
+  });
+});

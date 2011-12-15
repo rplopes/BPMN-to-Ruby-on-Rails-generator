@@ -1,0 +1,34 @@
+.block
+  .secondary-navigation
+    %ul.wat-cf
+      %li.first.active= link_to "#{t("web-app-theme.list", :default => "List")}", suppliers_path
+      %li= link_to "#{t("web-app-theme.new", :default => "New")}", new_supplier_path
+  .content
+    %h2.title
+      = t("web-app-theme.all", :default => "All")
+      Suppliers
+    .inner
+      %table.table
+        %tr
+          %th.first ID
+          %th
+            = t("activerecord.attributes.supplier.name", :default => t("activerecord.labels.name", :default => "Name"))
+          %th= t("web-app-theme.created_at", :default => "Created at")
+          %th.last &nbsp;
+        - @suppliers.each do |supplier|
+          %tr{:class => cycle("odd", "even")}
+            %td
+              = supplier.id
+            %td
+              = link_to supplier.name, supplier_path(supplier)
+            %td
+              = supplier.created_at
+            %td.last
+              = link_to "#{t("web-app-theme.show", :default => "Show")}", supplier_path(supplier)
+              |
+              \#{link_to "#{t("web-app-theme.edit", :default => "Edit")}", edit_supplier_path(supplier)} |
+              \#{link_to "#{t("web-app-theme.delete", :default => "Delete")}", supplier_path(supplier), :method => :delete, :confirm => "#{t("web-app-theme.confirm", :default => "Are you sure?")}"}
+      .actions-bar.wat-cf
+        .actions
+        = paginate @suppliers
+- content_for :sidebar, render(:partial => 'sidebar')

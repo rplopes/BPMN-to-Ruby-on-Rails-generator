@@ -1,0 +1,28 @@
+.block
+  .secondary-navigation
+    %ul.wat-cf
+      %li.first= link_to "#{t("web-app-theme.list", :default => "List")}", suppliers_path
+      %li= link_to "#{t("web-app-theme.new", :default => "New")}", new_supplier_path
+      %li.active= link_to "#{t("web-app-theme.show", :default => "Show")}", supplier_path
+  .content
+    .inner
+      %p
+        %b
+          = t("activerecord.attributes.supplier.name", :default => t("activerecord.labels.name", :default => "Name"))
+          \:
+        = @supplier.name
+      %p
+        %b
+          = t("activerecord.attributes.supplier.address", :default => t("activerecord.labels.address", :default => "Address"))
+          \:
+        = @supplier.address
+      %p
+        %b
+          = t("activerecord.attributes.supplier.city_id", :default => t("activerecord.labels.city_id", :default => "City"))
+          \:
+        = City.find(@supplier.city_id).to_string if @supplier.city_id
+        = "--" unless @supplier.city_id
+      .wat-cf
+        = link_to image_tag("web-app-theme/icons/application_edit.png", :alt => "#{t("web-app-theme.edit", :default=> "Edit")}") + " " + t("web-app-theme.edit", :default=> "Edit"), edit_supplier_path(@supplier), :class => "button"
+        = link_to image_tag("web-app-theme/icons/cross.png", :alt => "#{t("web-app-theme.delete", :default=> "Delete")}") + " " + t("web-app-theme.delete", :default => "Delete"), supplier_path(@supplier), :method => "delete", :class => "button", :confirm => "#{t("web-app-theme.confirm", :default => "Are you sure?")}"
+- content_for :sidebar, render(:partial => 'sidebar')

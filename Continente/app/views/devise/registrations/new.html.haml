@@ -1,0 +1,30 @@
+.block
+  .content
+    %h2.title
+      Register a new user
+    .inner
+      = form_for(@resource ||= User.new, :as => :user, :url => registration_path(:user), :html => { :class => "form" }) do |f|
+        .group
+          = f.label :email, :class => "label"
+          = f.text_field :email, :class => "text_field"
+          %span.description Ex. test@example.com
+        .group
+          = f.label :password, :class => "label"
+          = f.password_field :password, :class => "text_field"
+          %span.description must be at least 6 characters
+        .group
+          = f.label :password_confirmation, "Re-enter Password", :class => "label"
+          = f.password_field :password_confirmation, :class => "text_field"
+        .group
+          = f.label :roles
+          %br
+          - for role in User::ROLES
+            = check_box_tag "user[roles][]", role
+            =h User::ROLES_TITLES[role]
+            %br
+          = hidden_field_tag "user[roles][]", ""
+        .group.navform.wat-cf
+          %button.button{ :type => "submit" }
+            = image_tag "web-app-theme/icons/tick.png"
+            Register
+- content_for :sidebar, render(:partial => 'sidebar')

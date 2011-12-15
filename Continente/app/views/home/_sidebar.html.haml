@@ -1,0 +1,8 @@
+.block
+  %h3 Pages
+  %ul.navigation
+    - if current_user.roles.index("website_administrator")
+      %li
+        %a{:href => "admin/"} Administration
+    %li
+      %a{:href => "ims/"} IMS

@@ -1,0 +1,34 @@
+.block
+  .secondary-navigation
+    %ul.wat-cf
+      %li.first.active= link_to "#{t("web-app-theme.list", :default => "List")}", incidents_path
+      %li= link_to "#{t("web-app-theme.new", :default => "New")}", new_incident_path
+  .content
+    %h2.title
+      = t("web-app-theme.all", :default => "All")
+      Incidents
+    .inner
+      %table.table
+        %tr
+          %th.first ID
+          %th
+            = t("activerecord.attributes.incident.description", :default => t("activerecord.labels.description", :default => "Description"))
+          %th= t("web-app-theme.created_at", :default => "Created at")
+          %th.last &nbsp;
+        - @incidents.each do |incident|
+          %tr{:class => cycle("odd", "even")}
+            %td
+              = incident.id
+            %td
+              = link_to incident.description, incident_path(incident)
+            %td
+              = incident.created_at
+            %td.last
+              = link_to "#{t("web-app-theme.show", :default => "Show")}", incident_path(incident)
+              |
+              \#{link_to "#{t("web-app-theme.edit", :default => "Edit")}", edit_incident_path(incident)} |
+              \#{link_to "#{t("web-app-theme.delete", :default => "Delete")}", incident_path(incident), :method => :delete, :confirm => "#{t("web-app-theme.confirm", :default => "Are you sure?")}"}
+      .actions-bar.wat-cf
+        .actions
+        = paginate @incidents
+- content_for :sidebar, render(:partial => 'sidebar')

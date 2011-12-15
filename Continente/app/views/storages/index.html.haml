@@ -1,0 +1,34 @@
+.block
+  .secondary-navigation
+    %ul.wat-cf
+      %li.first.active= link_to "#{t("web-app-theme.list", :default => "List")}", storages_path
+      %li= link_to "#{t("web-app-theme.new", :default => "New")}", new_storage_path
+  .content
+    %h2.title
+      = t("web-app-theme.all", :default => "All")
+      Storages
+    .inner
+      %table.table
+        %tr
+          %th.first ID
+          %th
+            = t("activerecord.attributes.storage.address", :default => t("activerecord.labels.address", :default => "Address"))
+          %th= t("web-app-theme.created_at", :default => "Created at")
+          %th.last &nbsp;
+        - @storages.each do |storage|
+          %tr{:class => cycle("odd", "even")}
+            %td
+              = storage.id
+            %td
+              = link_to storage.address, storage_path(storage)
+            %td
+              = storage.created_at
+            %td.last
+              = link_to "#{t("web-app-theme.show", :default => "Show")}", storage_path(storage)
+              |
+              \#{link_to "#{t("web-app-theme.edit", :default => "Edit")}", edit_storage_path(storage)} |
+              \#{link_to "#{t("web-app-theme.delete", :default => "Delete")}", storage_path(storage), :method => :delete, :confirm => "#{t("web-app-theme.confirm", :default => "Are you sure?")}"}
+      .actions-bar.wat-cf
+        .actions
+        = paginate @storages
+- content_for :sidebar, render(:partial => 'sidebar')

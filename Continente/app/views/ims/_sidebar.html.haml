@@ -1,0 +1,38 @@
+.block
+  - if current_user.roles.index("ims_servicedesk")
+    %h3 Service Desk
+    %ul.navigation
+      %li
+        %a{:href => "servicedesk_loggingandclassification"} Logging and classification
+      %li
+        %a{:href => "servicedesk_knowledgedatabasequery"} Knowledge database query
+      %li
+        %a{:href => "servicedesk_resolved"} Resolved?
+      %li
+        %a{:href => "servicedesk_delegation"} Delegation
+  - if current_user.roles.index("ims_infrastructureresponsible")
+    %h3 Infrastructure Responsible
+    %ul.navigation
+      %li
+        %a{:href => "infrastructureresponsible_productincidentresolution"} Product incident resolution
+      %li
+        %a{:href => "infrastructureresponsible_resolved"} Resolved?
+  - if current_user.roles.index("ims_suppliersmanager")
+    %h3 Suppliers Manager
+    %ul.navigation
+      %li
+        %a{:href => "suppliersmanager_logisticsincidentresolution"} Logistics incident resolution
+      %li
+        %a{:href => "suppliersmanager_resolved"} Resolved?
+  - if current_user.roles.index("ims_technicalstaff")
+    %h3 Technical Staff
+    %ul.navigation
+      %li
+        %a{:href => "technicalstaff_technicalincidentresolution"} Technical incident resolution
+      %li
+        %a{:href => "technicalstaff_resolved"} Resolved?
+  - if current_user.roles.index("ims_boardofdirectors")
+    %h3 Board of Directors
+    %ul.navigation
+      %li
+        %a{:href => "boardofdirectors_criticalincidentresolution"} Critical incident resolution

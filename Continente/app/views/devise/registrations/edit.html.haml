@@ -1,0 +1,25 @@
+.block
+  .content
+    %h2.title
+      Edit account
+    .inner
+      = form_for(@resource ||= User.new, :as => :user, :url => registration_path(:user), :html => { :method => :put }) do |f|
+        .group
+          = f.label :email, :class => "label"
+          = f.email_field :email, :class => "text_field"
+          %span.description (leave blank if you don't want to change it)
+        .group
+          = f.label :password, :class => "label"
+          = f.password_field :password, :class => "text_field"
+          %span.description must be at least 6 characters (leave blank if you don't want to change it)
+        .group
+          = f.label :password_confirmation, "Re-enter Password", :class => "label"
+          = f.password_field :password_confirmation, :class => "text_field"
+        .group
+          = f.label :current_password, "Old Password", :class => "label"
+          = f.password_field :current_password, :class => "text_field"
+          %span.description (we need your current password to confirm your changes)
+        .group.navform.wat-cf
+          %button.button{ :type => "submit" }
+            = image_tag "web-app-theme/icons/tick.png"
+            Update

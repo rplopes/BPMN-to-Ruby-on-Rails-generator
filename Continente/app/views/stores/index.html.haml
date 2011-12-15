@@ -1,0 +1,34 @@
+.block
+  .secondary-navigation
+    %ul.wat-cf
+      %li.first.active= link_to "#{t("web-app-theme.list", :default => "List")}", stores_path
+      %li= link_to "#{t("web-app-theme.new", :default => "New")}", new_store_path
+  .content
+    %h2.title
+      = t("web-app-theme.all", :default => "All")
+      Stores
+    .inner
+      %table.table
+        %tr
+          %th.first ID
+          %th
+            = t("activerecord.attributes.store.address", :default => t("activerecord.labels.address", :default => "Address"))
+          %th= t("web-app-theme.created_at", :default => "Created at")
+          %th.last &nbsp;
+        - @stores.each do |store|
+          %tr{:class => cycle("odd", "even")}
+            %td
+              = store.id
+            %td
+              = link_to store.address, store_path(store)
+            %td
+              = store.created_at
+            %td.last
+              = link_to "#{t("web-app-theme.show", :default => "Show")}", store_path(store)
+              |
+              \#{link_to "#{t("web-app-theme.edit", :default => "Edit")}", edit_store_path(store)} |
+              \#{link_to "#{t("web-app-theme.delete", :default => "Delete")}", store_path(store), :method => :delete, :confirm => "#{t("web-app-theme.confirm", :default => "Are you sure?")}"}
+      .actions-bar.wat-cf
+        .actions
+        = paginate @stores
+- content_for :sidebar, render(:partial => 'sidebar')
