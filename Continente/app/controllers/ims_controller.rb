@@ -36,6 +36,13 @@ class ImsController < ApplicationController
 
   def servicedesk_resolved
     auth("ims_servicedesk")
+    if params[:resolution]
+      incident = session[:current_incident]
+      incident.resolution = params[:resolution]
+      incident.save
+      session[:current_incident] = nil
+      redirect_to ims_servicedesk_loggingandclassification_path, :notice => 'Incident was successfully closed.'
+    end
   end
 
   def servicedesk_delegation
