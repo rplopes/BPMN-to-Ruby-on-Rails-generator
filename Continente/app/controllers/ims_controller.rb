@@ -47,6 +47,13 @@ class ImsController < ApplicationController
 
   def servicedesk_delegation
     auth("ims_servicedesk")
+    if params[:delegation]
+      incident = session[:current_incident]
+      incident.state = params[:delegation]
+      incident.save
+      session[:current_incident] = nil
+      redirect_to ims_servicedesk_loggingandclassification_path, :notice => 'Incident was successfully delegated.'
+    end
   end
 
   def infrastructureresponsible_resolved

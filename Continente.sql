@@ -114,6 +114,7 @@ CREATE  TABLE IF NOT EXISTS `mydb`.`Incident` (
   `Office_idOffice` INT NULL ,
   `impactIncident` INT NOT NULL ,
   `urgencyIncident` INT NOT NULL ,
+  `stateIncident` VARCHAR(45) NULL ,
   PRIMARY KEY (`idIncident`) ,
   UNIQUE INDEX `idIncident_UNIQUE` (`idIncident` ASC) ,
   INDEX `fk_Incident_IncidentCategory1` (`Category_idCategory` ASC) ,

@@ -10,6 +10,7 @@ class CreateIncidents < ActiveRecord::Migration
       t.integer :office_id
       t.integer :impact
       t.integer :urgency
+      t.string :state
 
       t.timestamps
     end

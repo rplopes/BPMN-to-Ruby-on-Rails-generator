@@ -4,9 +4,12 @@
 .group
   = f.label :urgency, "Urgency", :class => :label
   = select("incident", "urgency", (1..5).collect {|n| [ n, n ] })
-  .group
+.group
   = f.label :category_id, t("activerecord.attributes.incident.category_id", :default => "Category"), :class => :label
   = select("incident", "category_id", Category.all.collect {|p| [ p.to_string, p.id ] }, {:include_blank => 'No category'})
+.group
+  = f.label :state, t("activerecord.attributes.incident.state", :default => "State"), :class => :label
+  = f.text_field :state, :class => "text_field"
 .group
   = f.label :name, "Incident related to", :class => :label
   = select_tag "related", "<option>None</option><option value='Supplier'>Supplier</option><option value='Storage'>Storage</option><option value='Store'>Store</option><option value='Office'>Office</option>".html_safe

@@ -34,6 +34,7 @@ ActiveRecord::Schema.define(:version => 20111215005809) do
     t.integer  "office_id"
     t.integer  "impact"
     t.integer  "urgency"
+    t.string   "state"
     t.datetime "created_at"
     t.datetime "updated_at"
   end

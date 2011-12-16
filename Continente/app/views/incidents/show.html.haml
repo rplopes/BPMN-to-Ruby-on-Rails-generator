@@ -17,6 +17,12 @@
           \:
         = Category.find(@incident.category_id).to_string if @incident.category_id
         = "--" unless @incident.category_id
+      %p
+        %b
+          = t("activerecord.attributes.incident.state", :default => t("activerecord.labels.state", :default => "State"))
+          \:
+        = @incident.state if @incident.state
+        = "none" unless @incident.state
       - if @incident.supplier_id
         %p
           %b
