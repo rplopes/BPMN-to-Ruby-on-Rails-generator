@@ -1,7 +1,92 @@
 .block
+  .secondary-navigation
+    %ul.wat-cf
+      - if @incident
+        %li.first= link_to "Unresolved incidents", ims_infrastructureresponsible_productincidentresolution_path
+        %li.active= link_to "Unresolved incident", ims_infrastructureresponsible_productincidentresolution_path(:id => @incident.id)
+      - else
+        %li.first.active= link_to "Unresolved incidents", ims_infrastructureresponsible_productincidentresolution_path
   .content
     %h2.title
       Product incident resolution
     .inner
-      Page for Product incident resolution, accessible by Infrastructure Responsible.
+      - if @incident
+        %p
+          %b
+            Priority
+            \:
+          = "#{@incident.impact * @incident.urgency} (#{@incident.impact} impact * #{@incident.urgency} urgency)"
+        %p
+          %b
+            = t("activerecord.attributes.incident.category_id", :default => t("activerecord.labels.category_id", :default => "Category"))
+            \:
+          = Category.find(@incident.category_id).to_string if @incident.category_id
+          = "--" unless @incident.category_id
+        - if @incident.supplier_id
+          %p
+            %b
+              = t("activerecord.attributes.incident.supplier_id", :default => t("activerecord.labels.supplier_id", :default => "Supplier"))
+              \:
+            = Supplier.find(@incident.supplier_id).to_string if @incident.supplier_id
+            = "--" unless @incident.supplier_id
+        - if @incident.storage_id
+          %p
+            %b
+              = t("activerecord.attributes.incident.storage_id", :default => t("activerecord.labels.storage_id", :default => "Storage"))
+              \:
+            = Storage.find(@incident.storage_id).to_string if @incident.storage_id
+            = "--" unless @incident.storage_id
+        - if @incident.store_id
+          %p
+            %b
+              = t("activerecord.attributes.incident.store_id", :default => t("activerecord.labels.store_id", :default => "Store"))
+              \:
+            = Store.find(@incident.store_id).to_string if @incident.store_id
+            = "--" unless @incident.store_id
+        - if @incident.office_id
+          %p
+            %b
+              = t("activerecord.attributes.incident.office_id", :default => t("activerecord.labels.office_id", :default => "Office"))
+              \:
+            = Office.find(@incident.office_id).to_string if @incident.office_id
+            = "--" unless @incident.office_id
+        %p
+          %b
+            = t("activerecord.attributes.incident.description", :default => t("activerecord.labels.description", :default => "Description"))
+            %br
+          = @incident.description
+
+        = form_tag ims_infrastructureresponsible_productincidentresolution_path, :method => "GET", :class => "form" do
+          = hidden_field_tag(:id, @incident.id)
+          %p
+            %b
+              Resolution
+              %br
+            .group
+              = text_area_tag :resolution, nil, :class => 'text_area'
+            .group.navform.wat-cf
+              %p
+                %button.button{:type => "submit"}
+                  = image_tag("web-app-theme/icons/tick.png", :alt => "#{t("web-app-theme.save", :default => "Save")}")
+                  = t("web-app-theme.save", :default => "Save")
+                %span.text_button_padding= t("web-app-theme.or", :default => "or")
+                = link_to "Cancel and delegate", ims_infrastructureresponsible_resolved_path(:id => @incident.id), :class => "text_button_padding link_button"
+
+      -else
+        %table.table
+          %tr
+            %th.first Priority
+            %th
+              = t("activerecord.attributes.incident.description", :default => t("activerecord.labels.description", :default => "Category"))
+            %th= t("web-app-theme.created_at", :default => "Created at")
+          - @incidents.each do |incident|
+            %tr{:class => cycle("odd", "even")}
+              %td
+                = link_to incident.impact * incident.urgency, ims_infrastructureresponsible_productincidentresolution_path(:id => incident.id)
+              %td
+                = link_to incident.category.to_string, ims_infrastructureresponsible_productincidentresolution_path(:id => incident.id) if incident.category
+                = link_to "None", ims_infrastructureresponsible_productincidentresolution_path(:id => incident.id) unless incident.category
+              %td
+                = incident.created_at
+
 - content_for :sidebar, render(:partial => 'sidebar')
