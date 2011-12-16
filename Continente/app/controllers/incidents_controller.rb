@@ -50,6 +50,7 @@ class IncidentsController < ApplicationController
     respond_to do |format|
       if current_user and current_user.roles.index("ims_servicedesk")
         if @incident.save
+          #@incident.ferret_update
           session[:current_incident] = @incident
           format.html { redirect_to ims_servicedesk_knowledgedatabasequery_path, :notice => 'Incident was successfully created.' }
           format.json { render :json => @incident, :status => :created, :location => @incident }

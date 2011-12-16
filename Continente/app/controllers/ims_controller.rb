@@ -10,7 +10,13 @@ class ImsController < ApplicationController
     auth("ims_servicedesk")
     @resolved_incident = Incident.find(params[:id]) if params[:id]
     unless @resolved_incident
-      incidents = Incident.where("resolution IS NOT NULL")
+      search = params[:search] ? params[:search] : ""
+      search = search.gsub('"', '\"')
+      if search != ""
+        incidents = Incident.find_with_ferret(search)-Incident.where("resolution IS NULL")
+      else 
+        incidents = Incident.where("resolution IS NOT NULL")
+      end
       @incidents = []
       incidents.each do |incident|
         @incidents << incident if incident.resolution.size > 0
