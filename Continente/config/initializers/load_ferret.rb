@@ -1,0 +1,1 @@
+Incident.rebuild_index
